@@ -1,0 +1,160 @@
+<html lang="en">
+<head>
+    <title>Webpage template generator</title>
+    <style>
+        body { background-color: beige;}
+        .center {
+            display: flex;
+            justify-content: center; /* Center horizontally */
+            align-items: center;     /* Center vertically */
+            height: 100px;           /* Optional: Full viewport height */
+            
+        }
+        .img {
+            max-width: 100%;
+            max-height: 100%;
+            display: block; 
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Creates two columns of equal width */
+            grid-gap: 20px;
+            height: 500px;           /* Optional: Full viewport height */
+        }
+        textarea {
+            resize: none;
+        }
+          
+    </style>
+</head>
+<body>
+    <div class="center">
+        <img src="logo.jpg" class="img">
+    </div>
+
+    <div class="center">
+        <h2>Upload a website Screenshot</h2>
+    </div>
+
+    <div class="center">
+        <input type="file" id="imageInput" accept="image/*">
+    </div>
+
+    <div class="grid-container">
+        <div>
+            <h3>HTML</h3>
+            <textarea type="text" name="description" rows="28" cols="120" readonly id="res"></textarea>
+        </div>
+
+        <div>
+            <h3>CSS</h3>
+            <textarea type="text" name="description" rows="28" cols="120" readonly></textarea>
+        </div>
+    </div>
+
+    <div class="grid-container">
+        <div>
+            <h3>Simple Customization</h3>
+            <div>
+                <label for="colorSelect">Choose a background color:</label>
+                <select id="colorSelect" onchange="applyStyle()">
+                    <option value="black">Black</option>
+                    <option value="red">Red</option>
+                    <option value="blue">Blue</option>
+                    <option value="green">Green</option>
+                </select>
+            </div>
+            <div>
+                <label for="styleSelect">Choose a font style:</label>
+                <select id="styleSelect" onchange="applyStyle()">
+                    <option value="normal">Normal</option>
+                    <option value="italic">Italic</option>
+                    <option value="bold">Bold</option>
+                </select>
+            </div>
+            <div>
+                <label for="familySelect">Choose a font family:</label>
+                <select id="familySelect" onchange="applyStyle()">
+                    <option value="Arial">Arial</option>
+                    <option value="Verdana">Verdana</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Courier New">Courier New</option>
+                </select>
+            </div>
+        </div>
+        <div>
+            <iframe id="outputFrame" width="800" height="600"></iframe>
+        </div>
+    </div>
+    <script>
+        document.getElementById('imageInput').addEventListener('change', function(event) { // Mark this function as async
+            console.log('Uploaded');
+            const input = document.getElementById('imageInput');
+            if (input.files.length > 0) {
+                const file = input.files[0];
+                const formData = new FormData();
+                formData.append('image', file);
+
+                fetch('http://localhost:3002/upload', {
+                    method: 'POST',
+                    body: formData,
+                    // Note: Fetch API does not require explicit Content-Type for FormData.
+                })
+                .then(response => response.json())
+                .then(data => document.getElementById('res').innerText = createHtml(JSON.stringify(data, null, 2)))
+                .catch(error => console.error('Error:', error));
+            } else {
+                console.log('No file selected.');
+            }
+        });
+
+        function createHtml(data) {
+            const predictions = JSON.parse(data).predictions;
+            let html = `<!DOCTYPE html>
+                        <html lang="en">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <title>Generated Webpage</title>
+                            <style>
+                                /* Add your CSS styles here */
+                            </style>
+                        </head>
+                        <body>
+                        `;
+        
+            predictions.forEach(data => {
+                // Determine the class of the element
+                let elementTag = '';
+                switch (data.class) {
+                    case 'heading':
+                        elementTag = 'h2';
+                        break;
+                    case 'button':
+                        elementTag = 'button';
+                        break;
+                    case 'field':
+                        elementTag = 'input';
+                        break;
+                    case 'image':
+                        elementTag = 'img';
+                        break;
+                    default:
+                        elementTag = 'div';
+                }
+        
+                // Create the HTML element with its attributes
+                html += `<${elementTag} style="position: absolute; left: ${data.x}px; top: ${data.y}px; width: ${data.width}px; height: ${data.height}px;">${data.class}</${elementTag}>\n`;
+            });
+        
+            html += `</body>
+        </html>`;
+            const outputFrame = document.getElementById('outputFrame');
+            outputFrame.srcdoc = html;
+            return html;
+        }
+        
+    </script>
+    
+</body>
+</html>
