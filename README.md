@@ -1,6 +1,8 @@
 ﻿# AI_Prototype
 - Step 1 Clone
   - git clone https://github.com/Remo0031/AI_Prototype.git
+  - Download Weights
+     - Download Weights [HERE](https://drive.google.com/drive/folders/17OTVe1YzfwiH9wiUsPtzBEVmSIbvYc2r?usp=drive_link)
 - Step 2 Make sure you have node js
   - Install node js
 - Step 3 Upload the model to roboflow
